@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io"
 	"regexp"
+
+	"./cli"
 )
 
 // Rules is simply a list of Rule(s) structures defined above.
@@ -37,7 +39,6 @@ func (rules *Rules) LoadRules(r io.Reader) (int, error) {
 	_, err := buf.ReadFrom(r)
 	if err != nil {
 		return -1, err
-		// log.Printf("Error (LoadRules): %v", err)
 	}
 	if err := json.Unmarshal(buf.Bytes(), &rules.list); err != nil {
 		return -1, err
@@ -48,7 +49,7 @@ func (rules *Rules) LoadRules(r io.Reader) (int, error) {
 
 // CompileRules receives an io.Reader and from this reader loads rules which
 // are subsequently used by the regexp matching code.
-func CompileRules(r io.Reader) *CompiledRuleList {
+func CompileRules(r io.Reader, a *cli.Args) *CompiledRuleList {
 	var rules = &Rules{}
 	rules.LoadRules(r)
 	var crl CompiledRuleList
@@ -57,6 +58,7 @@ func CompileRules(r io.Reader) *CompiledRuleList {
 	// consumed from stdin.
 	var cexp *regexp.Regexp
 	var pattern string
+	var debug bool
 	for i, r := range rules.ListOfRules() {
 		if r.PatString == MatchNoOutput {
 			pattern = zeroInputPattern
@@ -68,7 +70,13 @@ func CompileRules(r io.Reader) *CompiledRuleList {
 		} else {
 			cexp = regexp.MustCompile(pattern)
 		}
-		crl.Append(CompiledRule{re: cexp, desc: rules.RuleByIndex(i)})
+		// If debug is set on individual rule, or as a command-line argument,
+		// enable it on compiled rule as well.
+		debug = r.Debug || a.Debug()
+		crl.Append(CompiledRule{
+			re:    cexp,
+			desc:  rules.RuleByIndex(i),
+			debug: debug})
 	}
 
 	return &crl

@@ -13,7 +13,7 @@ func initializeFlags() *cli.Args {
 
 	flag.BoolVar(a.PTRnoCheckNamedSubexpr(), "no-check-named-subexp", false, "If rule contains named sub-expressions don't validate them in matches")
 
-	flag.BoolVar(a.PTRpExpandedTemplate(), "print-expanded-template", true, "If rule contains named sub-expressions, expand into the template if given")
+	flag.BoolVar(a.PTRnopExpandedTemplate(), "no-print-exp-template", false, "If rule contains named sub-expressions, do not expand into the template if given")
 
 	flag.StringVar(a.PTRrulesFilePath(), "rules-file", "rules", "Location of rules file")
 

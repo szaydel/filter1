@@ -10,8 +10,9 @@ import (
 // CompiledRule is a result of converting individual rules in the supplied
 // rules file into compiled regular expressions.
 type CompiledRule struct {
-	re   *regexp.Regexp
-	desc *Rule
+	re    *regexp.Regexp
+	desc  *Rule
+	debug bool
 }
 
 // Apply uses regexp engine to match given data received via buffer against
@@ -21,6 +22,12 @@ type CompiledRule struct {
 // these named capture groups specified in the rule must match those in
 func (c *CompiledRule) Apply(buf bytes.Buffer) (bool, map[string]error) {
 	return c.applyRule(buf)
+}
+
+// Debug returns a boolean indicating whether or not debugging is enabled for
+// this rule.
+func (c *CompiledRule) Debug() bool {
+	return c.debug
 }
 
 // Expand performs template rendering by taking values extracted with named
@@ -62,7 +69,7 @@ func (c *CompiledRule) applyRule(buf bytes.Buffer) (bool, map[string]error) {
 	}
 
 	for name, fn := range testFns {
-		if ok, err := applyRule(fn, buf); !ok {
+		if ok, err := applyRuleTestFunc(fn, buf); !ok {
 			failed = true
 			errs[name] = err
 		}
@@ -80,31 +87,43 @@ func (c *CompiledRule) testMatchCount(buf bytes.Buffer) (bool, error) {
 	switch c.desc.Constraints {
 	case Exactly:
 		if got != c.desc.Occurences {
-			return false, fmt.Errorf("Number of occurences is incorrect; expected: (exactly %d), got %d", c.desc.Occurences, got)
+			return false, fmt.Errorf("%s: Number of occurences is incorrect; expected: (exactly %d), got %d", c.desc.Comment, c.desc.Occurences, got)
 		}
 	case AtLeast:
 		if got < c.desc.Occurences {
-			return false, fmt.Errorf("Number of occurences is incorrect; expected: (at least %d), got: %d", c.desc.Occurences, got)
+			return false, fmt.Errorf("%s: Number of occurences is incorrect; expected: (at least %d), got: %d", c.desc.Comment, c.desc.Occurences, got)
 		}
 	case AtMost:
 		if got > c.desc.Occurences {
-			return false, fmt.Errorf("Number of occurences is incorrect; expected (at most %d), got: %d", c.desc.Occurences, got)
+			return false, fmt.Errorf("%s: Number of occurences is incorrect; expected (at most %d), got: %d", c.desc.Comment, c.desc.Occurences, got)
 		}
 	}
 	return true, nil
 }
 
 func (c *CompiledRule) nse(buf bytes.Buffer) map[string][]byte {
-	var subExpNames = c.re.SubexpNames()
-	var submatches = c.re.FindAllSubmatch(buf.Bytes(), unlimitedMatches)[0]
 	var namedSubexprs = make(map[string][]byte)
+	var subexpNames = c.re.SubexpNames()
+	var submatches = c.re.FindAllSubmatch(buf.Bytes(), unlimitedMatches)
 
-	for i, elem := range submatches {
-		// log.Printf("submatches[%d] => %s", i, elem)
-		if i == 0 {
-			continue
+	for i, lines := range submatches {
+		for j, elem := range lines {
+			if c.Debug() {
+				Debugf("submatches[%d][%d] => %s", i, j, elem)
+			}
+			if j == 0 {
+				continue
+			}
+			if _, ok := namedSubexprs[subexpNames[j]]; ok {
+				key := fmt.Sprintf("%s_%d", subexpNames[j], i)
+				namedSubexprs[key] = elem
+			} else {
+				namedSubexprs[subexpNames[j]] = elem
+			}
 		}
-		namedSubexprs[subExpNames[i]] = elem
+	}
+	if c.Debug() {
+		Debugf("%#v", namedSubexprs)
 	}
 	return namedSubexprs
 }
@@ -133,7 +152,7 @@ func (c *CompiledRule) testNamedSubexprs(buf bytes.Buffer) (bool, error) {
 		}
 		got := string(namedSubexprs[name])
 		if got != expected {
-			return false, fmt.Errorf("Sub-expression named <%s> does not have expected value; expected: %s, got: %s", name, expected, got)
+			return false, fmt.Errorf("%s: Sub-expression named <%s> does not have expected value; expected: %s, got: %s", c.desc.Comment, name, expected, got)
 		}
 	}
 	return true, nil

@@ -9,20 +9,22 @@ import (
 )
 
 func main() {
-	var rulesFile *os.File
-	var openErr error
+	var buf bytes.Buffer
 	var config = initializeFlags() // process CLI arguments
+	var err error
+	var expandedTemplates bytes.Buffer
+	var listOfCompiled *CompiledRuleList
+	var n int64
+	var openErr error
+	var retcode int
+	var rulesFile *os.File
 
 	if rulesFile, openErr = os.Open(config.RulesFilePath()); openErr != nil {
-		panic(openErr)
+		Errorf("%v", openErr)
+		os.Exit(1)
 	}
+	listOfCompiled = CompileRules(rulesFile, config)
 
-	var listOfCompiled = CompileRules(rulesFile)
-	var buf bytes.Buffer
-	var expandedTemplates bytes.Buffer
-	var n int64
-	var err error
-	
 	n, err = buf.ReadFrom(os.Stdin)
 	if err != nil {
 		panic(err)
@@ -30,13 +32,13 @@ func main() {
 	if config.Debug() {
 		Debugf("Read %d bytes from stdin", n)
 	}
-	var retcode int
+
 	var pairs = make(map[string]string)
 
 	for _, r := range listOfCompiled.Slice() {
 		ok, errs := r.Apply(buf)
 		if !ok {
-			retcode = 1
+			retcode = 1 // failure of any rule yields total failure
 			log.Printf(failedToApplyFmt, r.desc.Comment, r.re.String())
 			for name, e := range errs {
 				log.Printf(errApplyRuleMsgFmt, name, e)
@@ -68,7 +70,7 @@ func main() {
 		}
 	}
 
-	if config.PrintExpandedTemplate() {
+	if !config.NoPrintExpandedTemplate() {
 		fmt.Printf("%s\n", expandedTemplates.String())
 	}
 

@@ -1,0 +1,26 @@
+[
+  {
+    "comment": "IP Addresses",
+    "pat_string": "inet (?P<ipv4>\\S+) netmask (?P<netmask>\\S+) broadcast (?P<broadcast>\\S+)",
+    "expect": "option1: value1",
+    "occurences": 4,
+    "constraints": 0,
+    "named_subexprs": {
+        "ipv4": "192.168.1.194",
+        "netmask": "0xfffffc00",
+        "broadcast": "192.168.3.255",
+        "ipv4_1": "192.168.99.1",
+        "netmask_1": "0xffffff00",
+        "broadcast_1": "192.168.99.255"
+    },
+    "template": "{\"addr\": \"$ipv4\", \"nm\": \"$netmask\", \"bcast\": \"$broadcast\"}\n",
+    "debug": true
+  },
+  {
+      "comment": "Interface State",
+      "pat_string": "\\bstatus: (?P<status>\\S+)",
+      "occurences": 4,
+      "constraints": 1,
+      "template": "{\"state\": \"$status\"}"
+  }
+]

@@ -30,9 +30,9 @@ func Errorf(format string, a ...interface{}) {
 	log.Printf(coloredFmt, a...)
 }
 
-// applyRule is just a helper function which is meant to make validation of
+// applyRuleTestFunc is just a helper function which is meant to make validation of
 // rule logic easier by making it simple to pass any method through it as long
 // as this method satisfies RuleTestFunc function prototype.
-func applyRule(f RuleTestFunc, buf bytes.Buffer) (bool, error) {
+func applyRuleTestFunc(f RuleTestFunc, buf bytes.Buffer) (bool, error) {
 	return f(buf)
 }

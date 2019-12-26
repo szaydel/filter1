@@ -10,7 +10,7 @@ type Rule struct {
 	Constraints   Constraints       `json:"constraints"`
 	ERESyntax     bool              `json:"ere_syntax"`
 	NoCheckNSE    bool              `json:"no_check_named_subexprs"`
-	DumpNSEPairs  bool              `json:"dump_named_subexprs"`
+	Debug         bool              `json:"debug"`
 	NamedSubExprs map[string]string `json:"named_subexprs"`
 	Template      string            `json:"template"`
 }

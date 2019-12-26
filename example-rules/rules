@@ -1,0 +1,18 @@
+[
+  {
+    "comment": "First rule",
+    "pat_string": "(?m)(?P<key>\\w+):\\s+(?P<value>\\w+)$",
+    "expect": "option1: value1",
+    "occurences": 4,
+    "constraints": 0,
+    "named_subexprs": {"key": "option1", "value": "value1"},
+  },
+  {
+    "comment": "Second Rule",
+    "pat_string": "(?m)Hi there, my name is (?P<firstname>\\S+)\\s(?P<lastname>\\S+),.*$",
+    "occurences": 1,
+    "constraints": 0,
+    "no_check_named_subexprs": true,
+    "template": "{\"firstname\": \"$firstname\", \"lastname\": \"$lastname\"}"
+  }
+]

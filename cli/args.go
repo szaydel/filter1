@@ -4,7 +4,7 @@ package cli
 type Args struct {
 	debug               bool
 	noCheckNamedSubexpr bool
-	pExpandedTemplate   bool
+	nopExpandedTemplate bool
 	pNamedSubexpr       bool
 	rulesFilePath       string
 }
@@ -21,12 +21,12 @@ func (a *Args) PTRrulesFilePath() *string {
 	return &a.rulesFilePath
 }
 
-func (a *Args) PTRpExpandedTemplate() *bool {
-	return &a.pExpandedTemplate
+func (a *Args) PTRnopExpandedTemplate() *bool {
+	return &a.nopExpandedTemplate
 }
 
 func (a *Args) PTRnoCheckNamedSubexpr() *bool {
-	return &a.pExpandedTemplate
+	return &a.noCheckNamedSubexpr
 }
 
 func (a Args) Debug() bool {
@@ -41,6 +41,6 @@ func (a Args) PrintNamedSubexpr() bool {
 	return a.pNamedSubexpr
 }
 
-func (a Args) PrintExpandedTemplate() bool {
-	return a.pExpandedTemplate
+func (a Args) NoPrintExpandedTemplate() bool {
+	return a.nopExpandedTemplate
 }
