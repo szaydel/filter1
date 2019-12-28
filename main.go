@@ -43,6 +43,9 @@ func main() {
 			for name, e := range errs {
 				log.Printf(errApplyRuleMsgFmt, name, e)
 			}
+			if config.Failfast() {
+				break
+			}
 			// if ok...
 		} else {
 			// if we want to dump named sub-expressions...

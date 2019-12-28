@@ -60,7 +60,12 @@ func (c *CompiledRule) applyRule(buf bytes.Buffer) (bool, map[string]error) {
 	var failed bool
 	var testFns = make(map[string]RuleTestFunc)
 
-	testFns["Number of Matches"] = c.testMatchCount
+	if c.desc.FailIfMatch {
+		testFns["Must not Match"] = c.testMustNotMatch
+	} else {
+		testFns["Number of Matches"] = c.testMatchCount
+	}
+
 	// If we did not want to skip checking Named sub-expressions, and there is
 	// at least one named sub-expression defined in the rule, add test to map
 	// of tests.
@@ -76,6 +81,15 @@ func (c *CompiledRule) applyRule(buf bytes.Buffer) (bool, map[string]error) {
 	}
 
 	return !failed, errs
+}
+
+func (c *CompiledRule) testMustNotMatch(buf bytes.Buffer) (bool, error) {
+	var matches [][]byte = c.re.FindAll(buf.Bytes(), unlimitedMatches)
+	var got = len(matches)
+	if got > 0 {
+		return false, fmt.Errorf("%s:  <%s>, %d matches found", c.desc.Comment, c.re.String(), got)
+	}
+	return true, nil
 }
 
 func (c *CompiledRule) testMatchCount(buf bytes.Buffer) (bool, error) {

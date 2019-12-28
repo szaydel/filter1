@@ -11,6 +11,7 @@ type Rule struct {
 	ERESyntax     bool              `json:"ere_syntax"`
 	NoCheckNSE    bool              `json:"no_check_named_subexprs"`
 	Debug         bool              `json:"debug"`
+	FailIfMatch   bool              `json:"fail_if_match"`
 	NamedSubExprs map[string]string `json:"named_subexprs"`
 	Template      string            `json:"template"`
 }

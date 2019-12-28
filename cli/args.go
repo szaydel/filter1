@@ -2,11 +2,16 @@ package cli
 
 // Args is a globally accessible command line flags (arguments).
 type Args struct {
+	failfast bool
 	debug               bool
 	noCheckNamedSubexpr bool
 	nopExpandedTemplate bool
 	pNamedSubexpr       bool
 	rulesFilePath       string
+}
+
+func (a *Args) PTRFailfast() *bool {
+	return &a.failfast
 }
 
 func (a *Args) PTRDebug() *bool {
@@ -27,6 +32,10 @@ func (a *Args) PTRnopExpandedTemplate() *bool {
 
 func (a *Args) PTRnoCheckNamedSubexpr() *bool {
 	return &a.noCheckNamedSubexpr
+}
+
+func (a Args) Failfast() bool {
+	return a.failfast
 }
 
 func (a Args) Debug() bool {
